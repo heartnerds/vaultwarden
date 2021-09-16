@@ -16,6 +16,15 @@ Use `nginx.conf` in this repository instead of `subdomain.domain.com.conf` in ce
 
 Once your ssl is configured, in your nginx config replace `localhost` with `vaultwarden`.
 
+**Optional configuration**
+
+You can add credentials to connect to the admin panel. If you don't want this NGINX protection, please remove the last block with `location /admin` of your nginx configuration or you will not be able to access the admin panel.
+
+To generate your htpasswd user:
+```sh
+htpasswd -c nginx/htpasswd/.htpasswd your_username
+```
+
 ### **Configuring docker-compose**
 
 Match the `user` with your **UID** and **GID**.
