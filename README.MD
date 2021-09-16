@@ -1,4 +1,4 @@
-# **How to sefhost vaultwarden with certginx**
+# **How to self host vaultwarden with certginx**
 
 Tutorial to easily host your vaultwarden instance.
 
@@ -29,7 +29,7 @@ Full documentation [here](https://github.com/dani-garcia/vaultwarden/blob/main/.
 ### **Setup backups**
 
 Requirements:
-- GPG configured (Only store your public key!).
+- GPG configured (Only store your public key for security reasons!).
 
 **Configuration**
 
@@ -41,13 +41,13 @@ Make sure `backup.sh` have the *execute* permission.
 
 **Automatic backups**
 
-You can use crontab with `crontab -e` to automate your backups. In the example below you have 2 backups per day, one at midnight and one at noon.
+You can use crontab with `crontab -e` to automate your backups. In the example below you have two backups per day, one at midnight and one at noon.
 ```
 # m h  dom mon dow   command
 0 0 * * * ${HOME}/path_to_backup_script/backup.sh >> ${HOME}/path_to_backup_folder/backups.log
 0 12 * * * ${HOME}/path_to_backup_script/backup.sh >> ${HOME}/path_to_backup_folder/backups.log
 ```
 
-### **Test your backups**
+### **Check your backups**
 
-TODO
+I have made this [tool](https://gitlab.com/Mageas/selfhost-vaultwarden-backup-check) to automate the process of checking backups.
