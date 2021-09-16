@@ -60,3 +60,17 @@ You can use crontab with `crontab -e` to automate your backups. In the example b
 ### **Check your backups**
 
 I have made this [tool](https://gitlab.com/Mageas/selfhost-vaultwarden-backup-check) to automate the process of checking backups.
+
+### **Documentation**
+
+**HTTP Basic Authentication**
+
+More informations about the [HTTP Basic Authentication](https://docs.nginx.com/nginx/admin-guide/security-controls/configuring-http-basic-authentication/).
+
+**Vaultwarden configuration**
+
+[Vaultwarden Github](https://github.com/dani-garcia/vaultwarden)
+
+[Vaultwarden Wiki](https://github.com/dani-garcia/vaultwarden/wiki)
+
+[Vaultwarden Env Template](https://github.com/dani-garcia/vaultwarden/blob/main/.env.template)
