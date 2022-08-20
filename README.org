@@ -1,0 +1,179 @@
+#+TITLE: Gitea
+
+* Nginx Setup
+[[https://gitlab.com/Mageas/certginx][Certginx]] is used for simplicity.
+
+Copy *nginx.conf* to *./nginx/conf.d/subdomain.domain.com.conf* in the [[https://gitlab.com/Mageas/certginx][Certginx]] directory.
+
+Then follow the steps [[https://gitlab.com/Mageas/certginx][here]].
+
+** Optional Configuration
+You can add credentials to connect to the admin panel. If you don't want this NGINX protection, please remove the last block with `location /admin` of your nginx configuration or you will not be able to access the admin panel.
+
+To generate your htpasswd user:
+#+BEGIN_SRC sh
+htpasswd -c nginx/htpasswd/.htpasswd your_username
+#+END_SRC
+
+Add this to *docker-compose.yml* to use your htpasswd users.
+#+BEGIN_SRC
+- ./nginx/htpasswd:/etc/nginx/htpasswd
+#+END_SRC
+
+* Docker Setup
+** User Configuration
+Match the *user* with your *UID* and *GID*.
+
+** Environment Variables
+Environment variables are in *data/docker-config.env*.
+
+Full documentation [here](https://github.com/dani-garcia/vaultwarden/blob/main/.env.template).
+
+* Docker Backup
+** Share
+Create the shared directory.
+#+BEGIN_SRC sh
+mkdir /home/vaultwarden-shared
+#+END_SRC
+
+Add the shared group.
+#+BEGIN_SRC sh
+addgroup vaultwarden-shared
+#+END_SRC
+
+Update the permissions of the shared directory for the group.
+#+BEGIN_SRC sh
+chown :vaultwarden-shared /home/vaultwarden-shared
+#+END_SRC
+
+Add the users to the shared group *(Duplicate this for the other user)*.
+#+BEGIN_SRC sh
+usermod -aG vaultwarden-shared vaultwarden
+#+END_SRC
+
+Update the permissions of the shared directory
+#+BEGIN_SRC sh
+chmod 1770 /home/vaultwarden-shared
+#+END_SRC
+
+** Sharing the Dump
+Update the permission of the file
+#+BEGIN_SRC sh
+chown :vaultwarden-shared /path/to/your/dumps.zip
+#+END_SRC
+
+Move the file to your shared directory
+#+BEGIN_SRC sh
+cp /home/vaultwarden/backups/* /home/vaultwarden-shared
+#+END_SRC
+
+** Script
+Automation for the Dumping, encrypt the dumped file with gpg, then move the encrypted file to the shared directory.
+#+BEGIN_SRC sh
+#!/bin/bash
+GPG_EMAILS=(
+    "example1@mail.net"
+    "example2@mail.net"
+)
+
+DATA_DIR="/home/vaultwarden/vaultwarden/data"
+SHARE_DIR="/home/vaultwarden-shared"
+TAR_BACKUP_DIR="/home/vaultwarden/backups"
+BACKUP_DURATION_IN_DAYS=28
+
+BACKUP_NAME="bitwarden-$(date '+%Y%m%d-%H%M').tar.xz"
+DATA_TO_BACKUP=("db.sqlite3" "rsa_key.pem" "rsa_key.pub.pem" "config.json" "attachments" "sends")
+
+# DO NOT CHANGE BELOW THIS LINE
+rm -rf $TAR_BACKUP_DIR
+mkdir -p $TAR_BACKUP_DIR
+
+SCRIPT_FOLDER="$( cd "$(dirname "${0}")" >/dev/null 2>&1 ; pwd -P )"
+
+cd ${SCRIPT_FOLDER} && \
+    docker-compose down || exit 1
+
+for file in "${DATA_TO_BACKUP[@]}"; do
+    cp -r "${DATA_DIR}/${file}" "${TAR_BACKUP_DIR}" 2>/dev/null
+done
+
+cd ${SCRIPT_FOLDER} && \
+    docker-compose up -d || exit 1
+
+cd ${TAR_BACKUP_DIR} && \
+    tar -Jcf "${TAR_BACKUP_DIR}/${BACKUP_NAME}" ${DATA_TO_BACKUP[@]} 2>/dev/null
+
+for email in "${GPG_EMAILS[@]}"; do
+    echo "[$(date '+%Y-%m-%d %H:%M')] Encrypting '${BACKUP_NAME}' for ${email}"
+    gpg -r ${email} -o "${SHARE_DIR}/${email}:${BACKUP_NAME}.gpg" -e "${TAR_BACKUP_DIR}/${BACKUP_NAME}" || exit 1
+    chown :vaultwarden-shared "${SHARE_DIR}/${email}:${BACKUP_NAME}.gpg" || exit 1
+done
+
+rm -rf ${TAR_BACKUP_DIR}
+
+find ${SHARE_DIR} -type f -mtime +${BACKUP_DURATION_IN_DAYS} -delete
+#+END_SRC
+
+** Automatic Backup
+You can use crontab with *crontab -e* to automate your backups. In the example below you have two backups per day, one at midnight and one at noon.
+#+BEGIN_SRC sh
+#!/bin/bash
+# m h  dom mon dow   command
+0 0 * * * ${HOME}/path_to_backup_script/backup.sh >> ${HOME}/path_to_backup_folder/backups.log
+0 12 * * * ${HOME}/path_to_backup_script/backup.sh >> ${HOME}/path_to_backup_folder/backups.log
+#+END_SRC
+
+* Security (fail2ban)
+Add */etc/fail2ban/jail.local*:
+#+BEGIN_SRC
+[vaultwarden]
+enabled = true
+port = 80,443,8081
+filter = vaultwarden
+banaction = %(banaction_allports)s
+logpath = /home/vaultwarden/vaultwarden/bitwarden/vaultwarden.log
+maxretry = 6
+bantime = 30m
+findtime = 10m
+
+[vaultwarden-admin]
+enabled = true
+port = 80,443
+filter = vaultwarden-admin
+banaction = %(banaction_allports)s
+logpath = /home/vaultwarden/vaultwarden/bitwarden/vaultwarden.log
+maxretry = 2
+bantime = 24h
+findtime = 24h
+#+END_SRC
+
+Create */etc/fail2ban/filter.d/vaultwarden.local*:
+#+BEGIN_SRC
+[INCLUDES]
+before = common.conf
+
+[Definition]
+failregex = ^.*Username or password is incorrect\. Try again\. IP: <ADDR>\. Username:.*$
+ignoreregex =
+#+END_SRC
+
+Create */etc/fail2ban/filter.d/vaultwarden-admin.local*:
+#+BEGIN_SRC
+[INCLUDES]
+before = common.conf
+
+[Definition]
+failregex = ^.*Invalid admin token\. IP: <ADDR>.*$
+ignoreregex =
+#+END_SRC
+
+* Documentation
+** HTTP Basic Authentication
+More informations about the [[https://docs.nginx.com/nginx/admin-guide/security-controls/configuring-http-basic-authentication][HTTP Basic Authentication]]
+
+** Vaultwarden configuration
+[[https://github.com/dani-garcia/vaultwarden][Vaultwarden Github]]
+
+[[https://github.com/dani-garcia/vaultwarden/wiki][Vaultwarden Wiki]]
+
+[[https://github.com/dani-garcia/vaultwarden/blob/main/.env.template][Vaultwarden Env Template]]
