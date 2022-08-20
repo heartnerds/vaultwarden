@@ -112,6 +112,12 @@ done
 rm -rf ${TAR_BACKUP_DIR}
 
 find ${SHARE_DIR} -type f -mtime +${BACKUP_DURATION_IN_DAYS} -delete
+
+for email in "${GPG_EMAILS[@]}"; do
+    [ -f "${SHARE_DIR}/${email}:${BACKUP_NAME}.gpg" ] \
+        && echo "[$(date '+%Y-%m-%d %H:%M')] Success (${SHARE_DIR}/${email}:${BACKUP_NAME}.gpg)" \
+        || echo "[$(date '+%Y-%m-%d %H:%M')] Failed"
+done
 #+END_SRC
 
 ** Automatic Backup
