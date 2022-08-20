@@ -1,17 +1,21 @@
 version: "3.5"
 services:
 
-    vaultwarden:
-        image: vaultwarden/server
-        restart: unless-stopped
-        user: 1000:1000
-        volumes:
-            - ./data:/data
-        env_file:
-            - ./data/docker-config.env
-        networks:
-            - net-vaultwarden
+  vaultwarden:
+    image: vaultwarden/server
+    container_name: gitea
+    restart: unless-stopped
+    user: 1000:1000
+    volumes:
+      - vaultwarden:/data
+    env_file: .env
+    networks:
+      - net-vaultwarden
+
+volumes:
+  vaultwarden:
+    driver: local
 
 networks:
-    net-vaultwarden:
-        external: true
+  net-vaultwarden:
+    external: true
