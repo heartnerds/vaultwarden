@@ -91,14 +91,14 @@ mkdir -p $TAR_BACKUP_DIR
 SCRIPT_FOLDER="$( cd "$(dirname "${0}")" >/dev/null 2>&1 ; pwd -P )"
 
 cd ${SCRIPT_FOLDER} && \
-    docker-compose down || exit 1
+    /usr/local/bin/docker-compose down || exit 1
 
 for file in "${DATA_TO_BACKUP[@]}"; do
     cp -r "${DATA_DIR}/${file}" "${TAR_BACKUP_DIR}" 2>/dev/null
 done
 
 cd ${SCRIPT_FOLDER} && \
-    docker-compose up -d || exit 1
+    /usr/local/bin/docker-compose up -d || exit 1
 
 cd ${TAR_BACKUP_DIR} && \
     tar -Jcf "${TAR_BACKUP_DIR}/${BACKUP_NAME}" ${DATA_TO_BACKUP[@]} 2>/dev/null
