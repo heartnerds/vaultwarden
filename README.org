@@ -136,7 +136,7 @@ Add */etc/fail2ban/jail.local*:
 enabled = true
 port = 80,443,8081
 filter = vaultwarden
-banaction = %(banaction_allports)s
+action = iptables-allports[name=vaultwarden, chain=FORWARD]
 logpath = /home/vaultwarden/vaultwarden/bitwarden/vaultwarden.log
 maxretry = 6
 bantime = 30m
@@ -146,7 +146,7 @@ findtime = 10m
 enabled = true
 port = 80,443
 filter = vaultwarden-admin
-banaction = %(banaction_allports)s
+action = iptables-allports[name=vaultwarden-admin, chain=FORWARD]
 logpath = /home/vaultwarden/vaultwarden/bitwarden/vaultwarden.log
 maxretry = 2
 bantime = 24h
