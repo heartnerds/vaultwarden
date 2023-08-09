@@ -1,11 +1,11 @@
 #+TITLE: Gitea
 
 * Nginx Setup
-[[https://gitlab.com/Mageas/certginx][Certginx]] is used for simplicity.
+[[https://github.com/heartnerds/certginx][Certginx]] is used for simplicity.
 
-Copy *nginx.conf* to *./nginx/conf.d/subdomain.domain.com.conf* in the [[https://gitlab.com/Mageas/certginx][Certginx]] directory.
+Copy *nginx.conf* to *./nginx/conf.d/subdomain.domain.com.conf* in the [[https://github.com/heartnerds/certginx][Certginx]] directory.
 
-Then follow the steps [[https://gitlab.com/Mageas/certginx][here]].
+Then follow the steps [[https://github.com/heartnerds/certginx][here]].
 
 ** Optional Configuration
 You can add credentials to connect to the admin panel. If you don't want this NGINX protection, please remove the last block with `location /admin` of your nginx configuration or you will not be able to access the admin panel.
