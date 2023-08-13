@@ -105,8 +105,8 @@ cd ${TAR_BACKUP_DIR} && \
 
 for email in "${GPG_EMAILS[@]}"; do
     echo "[$(date '+%Y-%m-%d %H:%M')] Encrypting '${BACKUP_NAME}' for ${email}"
-    gpg -r ${email} -o "${SHARE_DIR}/${email}:${BACKUP_NAME}.gpg" -e "${TAR_BACKUP_DIR}/${BACKUP_NAME}" || exit 1
-    chown :vaultwarden-shared "${SHARE_DIR}/${email}:${BACKUP_NAME}.gpg" || exit 1
+    gpg -r ${email} -o "${SHARE_DIR}/${email}_${BACKUP_NAME}.gpg" -e "${TAR_BACKUP_DIR}/${BACKUP_NAME}" || exit 1
+    chown :vaultwarden-shared "${SHARE_DIR}/${email}_${BACKUP_NAME}.gpg" || exit 1
 done
 
 rm -rf ${TAR_BACKUP_DIR}
@@ -115,8 +115,8 @@ find ${SHARE_DIR} -type f -mtime +${BACKUP_DURATION_IN_DAYS} -delete
 
 for email in "${GPG_EMAILS[@]}"; do
     [ -f "${SHARE_DIR}/${email}:${BACKUP_NAME}.gpg" ] \
-        && echo "[$(date '+%Y-%m-%d %H:%M')] Success (${SHARE_DIR}/${email}:${BACKUP_NAME}.gpg)" \
-        || echo "[$(date '+%Y-%m-%d %H:%M')] Failed"
+        && echo "[$(date '+%Y-%m-%d %H:%M')] Success (${SHARE_DIR}/${email}_${BACKUP_NAME}.gpg)" \
+        || echo "[$(date '+%Y-%m-%d %H:%M')] Failed (${SHARE_DIR}/${email}_${BACKUP_NAME}.gpg)"
 done
 #+END_SRC
 
